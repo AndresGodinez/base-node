@@ -1,9 +1,9 @@
 {
-  "development": {
+  "dev": {
     "username": "root",
     "password": "root",
-    "database": "xpensives",
-    "host": "127.0.0.1",
+    "database": "xpensive",
+    "host": "localhost",
     "dialect": "mysql",
     "port": 3307
   }
