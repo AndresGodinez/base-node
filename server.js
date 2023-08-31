@@ -1,5 +1,7 @@
 const app = require("./app")
 app.listen(3000, () => {
-    console.log('Server running on port');
+    console.clear();
+    console.log('Server running on port 3000');
+    console.warn("yeii");
 
 })
