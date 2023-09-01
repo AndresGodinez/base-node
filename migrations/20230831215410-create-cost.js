@@ -12,6 +12,9 @@ module.exports = {
       name: {
         type: Sequelize.STRING
       },
+      amount: {
+        type: Sequelize.FLOAT
+      },
       userId: {
         type: Sequelize.INTEGER,
         references: {
@@ -37,9 +40,6 @@ module.exports = {
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
-      },
-      amount: {
-        type: Sequelize.FLOAT
       },
       updatedAt: {
         allowNull: false,
