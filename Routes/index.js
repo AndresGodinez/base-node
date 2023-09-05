@@ -10,6 +10,9 @@ router.use('/example', exampleRoutes);
 const categoriesRouter = require('./Categories.routes');
 router.use('/categories', categoriesRouter);
 
+const usersRoutes = require('./Users.routes');
+router.use('/users', usersRoutes);
+
 module.exports = router;
 
 

@@ -1,10 +1,12 @@
 const {Sequelize} = require('sequelize');
+const {development} = require('../config');
 
-const sequelize = new Sequelize('xpensive', 'root', 'root', {
-    host: 'localhost',
-    dialect: 'mariadb',
-    port: 3307
-});
+const sequelize = new Sequelize(development.database, development.username,
+    development.password, {
+      host: development.host,
+      dialect: development.dialect,
+      port: development.port,
+    });
 //
 // async function check() {
 //     try {
