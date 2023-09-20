@@ -22,6 +22,14 @@ describe('CRUD de usuarios', () => {
     expect(response.body.lastName).toBe(newUser.lastName);
     expect(response.body.email).toBe(newUser.email);
 
+    const usersOnDb = await User.findAll();
+    // console.log({usersOnDb});
+    usersOnDb.forEach(user =>{
+      console.log({user});
+
+    })
+
+
   });
 
   it('should be get all users', async () => {
