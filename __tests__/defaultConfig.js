@@ -8,6 +8,8 @@ const sequelize = new Sequelize(test.database, test.username, test.password, {
   host: test.host,
   dialect: test.dialect,
   port: test.port,
+  logging: false
+
 });
 describe('this is not a test', () => {
   it('should ', () => {

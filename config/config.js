@@ -16,8 +16,9 @@ module.exports = {
     password: process.env.TEST_DB_PASSWORD,
     host: process.env.TEST_DB_HOST,
     dialect: process.env.TEST_DB_DIALECT,
-    logging: console.log,
+    logging: false,
     port: process.env.TEST_DB_PORT,
+
   },
   production: {},
 };
