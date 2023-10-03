@@ -14,7 +14,6 @@ module.exports = {
                 references: {
                     model: {
                         tableName: 'Users',
-                        schema: 'xpensive'
                     },
                     key: 'id'
                 },

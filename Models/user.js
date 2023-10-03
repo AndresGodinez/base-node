@@ -1,7 +1,14 @@
 'use strict';
 const {Model} = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
+
+    toJSON() {
+      const values = { ...this.get() };
+      delete values.password;
+      return values;
+    }
 
     static associate(models) {
       User.hasMany(models.Category, {
@@ -25,6 +32,10 @@ module.exports = (sequelize, DataTypes) => {
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
     email: DataTypes.STRING,
+    password: {
+      type:DataTypes.STRING,
+      allowNull:false
+    },
   }, {
     sequelize,
     modelName: 'User',

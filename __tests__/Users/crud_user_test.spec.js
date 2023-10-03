@@ -2,6 +2,7 @@ const request = require('supertest');
 const {app, sequelize, StatusCodes} = require('../defaultConfig');
 const User = require('../../Models').User;
 const userFactory = require('../../Factories/UserFactory');
+const {compare} = require('../../Utils/UtilsCrypto');
 // const {matchers} = require('jest-json-schema');
 // expect.extend(matchers);
 
@@ -30,6 +31,7 @@ describe('CRUD de usuarios', () => {
       firstName: 'John',
       lastName: 'Doe',
       email: 'johndoe@example.com',
+      password: 'simple password',
     };
     const response = await request(app).post('/users').send(newUser);
     expect(response.status).toBe(StatusCodes.CREATED);
@@ -49,6 +51,10 @@ describe('CRUD de usuarios', () => {
     const response = await request(app).get('/users');
 
     expect(response.status).toBe(StatusCodes.OK);
+
+    for (const user of response.body) {
+      expect(user.password).toBeUndefined();
+    }
     expect(response.body.length).toBe(numberUsers);
 
   });
@@ -66,6 +72,28 @@ describe('CRUD de usuarios', () => {
 
     expect(response.status).toBe(StatusCodes.OK);
     expect(response.body.firstName).toBe('Jane');
+
+  });
+
+  it('should be able to update the password', async () => {
+    const numberUsers = 2;
+    await userFactory.createMany('User', numberUsers);
+
+    const usersOnDb = await User.findAll();
+    expect(usersOnDb.length).toBe(2);
+
+    const newPassword = {
+      password: 'newPassword',
+    };
+
+    const response = await request(app).put('/users/1').send(newPassword);
+
+    const userOnDb = await User.findByPk(1);
+
+    const result = await compare(newPassword.password, userOnDb.password);
+
+    expect(response.status).toBe(StatusCodes.OK);
+    expect(result).toBeTruthy();
 
   });
 

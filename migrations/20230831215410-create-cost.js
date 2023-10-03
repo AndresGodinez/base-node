@@ -7,47 +7,45 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       name: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       amount: {
-        type: Sequelize.FLOAT
+        type: Sequelize.FLOAT,
       },
       userId: {
         type: Sequelize.INTEGER,
         references: {
           model: {
             tableName: 'Users',
-            schema: 'xpensive'
           },
-          key: 'id'
+          key: 'id',
         },
-        allowNull: false
+        allowNull: false,
       },
       categoryId: {
         type: Sequelize.INTEGER,
         references: {
           model: {
             tableName: 'Categories',
-            schema: 'xpensive'
           },
-          key: 'id'
+          key: 'id',
         },
-        allowNull: false
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Costs');
-  }
+  },
 };

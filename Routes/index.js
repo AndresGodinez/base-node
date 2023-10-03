@@ -13,6 +13,9 @@ router.use('/categories', categoriesRouter);
 const usersRoutes = require('./Users.routes');
 router.use('/users', usersRoutes);
 
+const authRoutes = require('./Auth.routes');
+router.use('/auth', authRoutes);
+
 module.exports = router;
 
 
