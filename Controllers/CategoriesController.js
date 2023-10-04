@@ -10,10 +10,9 @@ class CategoriesController {
 
     let userDb = await UserModel.findByPk(user.id);
 
-    if (!(userDb)){
-      new Error("user not found")
+    if (!(userDb)) {
+      new Error('user not found');
     }
-
 
     try {
       const {name} = req.body;
@@ -36,9 +35,32 @@ class CategoriesController {
 
   static async index(req, res) {
     try {
-      const categories = await Category.findAll();
+      const categories = await Category.findAll({
+            include: [UserModel],
+          },
+      );
       res.json(categories);
+    } catch (e) {
+      console.log({e});
 
+      res.status(500).json({error: 'Error getting categories'});
+    }
+  }
+
+  static async updateCategory(req, res) {
+    // const authUser = UserModel.getAuthUser(req.headers.authorization);
+    // console.log({authUser});
+    // process.exit();
+
+    console.log({user: req.user});
+    process.exit();
+
+    try {
+      const categories = await Category.findAll({
+            include: [UserModel],
+          },
+      );
+      res.json(categories);
     } catch (e) {
       console.log({e});
 

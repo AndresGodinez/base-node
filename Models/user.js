@@ -1,13 +1,20 @@
 'use strict';
 const {Model} = require('sequelize');
+const {verify} = require('jsonwebtoken');
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
 
     toJSON() {
-      const values = { ...this.get() };
+      const values = {...this.get()};
       delete values.password;
       return values;
+    }
+
+    static getAuthUser(authorization) {
+      const token = authorization.replace('Bearer ', '');
+      const decodedToken = verify(token, process.env.SECRET_KEY);
+      return decodedToken.user;
     }
 
     static associate(models) {
@@ -33,8 +40,9 @@ module.exports = (sequelize, DataTypes) => {
     lastName: DataTypes.STRING,
     email: DataTypes.STRING,
     password: {
-      type:DataTypes.STRING,
-      allowNull:false
+      type: DataTypes.STRING,
+      allowNull: false,
+      visible: false,
     },
   }, {
     sequelize,

@@ -11,17 +11,9 @@ describe('CRUD de usuarios', () => {
   beforeEach(async () => {
     await sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
 
-    await sequelize.getQueryInterface().showAllTables().then((tableObj) => {
-      tableObj.forEach((singleTable) => {
-        sequelize.query(`TRUNCATE TABLE \`${singleTable.tableName}\``).
-            then(resp => {
-              // console.log({'respuesta truncate': resp});
-            }).
-            catch(e => {
-              console.log({e});
-            });
-      });
-    });
+    await sequelize.query('TRUNCATE TABLE Costs');
+    await sequelize.query('TRUNCATE TABLE Categories');
+    await sequelize.query('TRUNCATE TABLE Users');
 
     await sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
   });
