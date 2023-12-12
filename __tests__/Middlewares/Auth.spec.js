@@ -4,24 +4,11 @@ const User = require('../../Models').User;
 const userFactory = require('../../Factories/UserFactory');
 const {compare, hashPassword} = require('../../Utils/UtilsCrypto');
 const jwt = require('jsonwebtoken');
+const {setup} = require('../UtilsTest/truncateTables');
 
 describe('Auth middleware', () => {
   beforeEach(async () => {
-    await sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
-
-    await sequelize.getQueryInterface().showAllTables().then((tableObj) => {
-      tableObj.forEach((singleTable) => {
-        sequelize.query(`TRUNCATE TABLE \`${singleTable.tableName}\``).
-            then(resp => {
-              // console.log({'respuesta truncate': resp});
-            }).
-            catch(e => {
-              console.log({e});
-            });
-      });
-    });
-
-    await sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
+    await setup();
   });
 
   it('should return 401 if no token is provided', () => {
