@@ -3,13 +3,14 @@ const authMiddleware = (req, res, next) => {
   const token = parseTokenFromHeader(req.headers['authorization']);
 
   if (!token) {
-    console.log('No se proporcionó un token');
-    return res.status(401).json({message: 'No autorizado'});
+    console.log('No token was provided');
+    return res.status(401).json({message: 'Unauthorized'});
   }
 
   try {
     const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
-    req.user = decodedToken;
+
+    req.user = decodedToken.user;
     next();
   } catch (error) {
     console.error('Error to verify token:', error);

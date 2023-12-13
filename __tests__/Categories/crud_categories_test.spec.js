@@ -1,22 +1,18 @@
 const request = require('supertest');
 const {app, sequelize, StatusCodes} = require('../defaultConfig');
-const User = require('../../Models').User;
-const Category = require('../../Models').Category;
+const UserModel = require('../../Models').User;
+const CategoryModel = require('../../Models').Category;
 const userFactory = require('../../Factories/UserFactory');
 const categoryFactory = require('../../Factories/CategoryFactory');
 const jwt = require('jsonwebtoken');
 const {hashPassword} = require('../../Utils/UtilsCrypto');
+const {setup} = require('../UtilsTest/truncateTables');
+const {AuthUserToken} = require('../UtilsTest/AuthUtils');
 
 describe('CRUD Categories', () => {
 
   beforeEach(async () => {
-    await sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
-
-    await sequelize.query('TRUNCATE TABLE Costs');
-    await sequelize.query('TRUNCATE TABLE Categories');
-    await sequelize.query('TRUNCATE TABLE Users');
-
-    await sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
+    await setup();
 
   });
 
@@ -24,81 +20,85 @@ describe('CRUD Categories', () => {
     const newCategory = {
       name: 'Name of category',
     };
-    const simplePassword = 'simple Password';
-    const password = await hashPassword(simplePassword);
-    const userLine = {
-      id: 1,
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'email@mail.com',
-      password,
-    };
+    const authUser = await AuthUserToken();
 
-    const token = await jwt.sign({
-      user: userLine,
-    }, process.env.SECRET_KEY);
-
-    const userDb = await User.create(userLine);
-
-    const usersOnDb = await User.findAll();
+    const usersOnDb = await UserModel.findAll();
     expect(usersOnDb.length).toBe(1);
 
     const shortName = newCategory.name.substring(0, 4);
+
     const response = await request(app).
         post('/categories').
-        set('Authorization', `Bearer ${token}`).
+        set('Authorization', `Bearer ${authUser.token}`).
         send(newCategory);
 
     expect(response.status).toBe(StatusCodes.CREATED);
     expect(response.body.name).toBe(newCategory.name);
     expect(response.body.short_name).toBe(shortName);
-    expect(response.body.userId).toBe(userDb.id);
+    expect(response.body.userId).toBe(authUser.userDb.id);
 
   });
 
-  it('should be get all categories and user reference', async () => {
+  it('should be to get all categories and user reference if you are the owner',
+      async () => {
 
-    const numberCategories = 5;
-    await categoryFactory.createMany('Category', numberCategories);
+        const authUser = await AuthUserToken();
 
-    const response = await request(app).get('/categories');
+        const usersOnDb = await UserModel.findAll();
 
-    expect(response.status).toBe(StatusCodes.OK);
-    expect(response.body.length).toBe(numberCategories);
-    expect(response.body.length).toBe(numberCategories);
-    response.body.forEach((category) => {
-      expect(category).hasOwnProperty('name');
-      expect(category).hasOwnProperty('short_name');
-      expect(category).hasOwnProperty('user');
-    });
+        expect(usersOnDb.length).toBe(1);
 
-  });
+        const numberCategories = 5;
+        await categoryFactory.createMany('Category', numberCategories);
+
+        const firstCategory = await CategoryModel.findByPk(1);
+
+        await firstCategory.update({
+              userId: authUser.userDb.id,
+            },
+        );
+
+        const response = await request(app).get('/categories').
+            set('Authorization', `Bearer ${authUser.token}`);
+
+        expect(response.status).toBe(StatusCodes.OK);
+        console.log({response: response.body});
+
+        const numberCategoriesByUser = await CategoryModel.findAll(
+            {
+              where:
+                  {UserId: authUser.userDb.id},
+            },
+        );
+
+        expect(response.body.length).toBe(numberCategoriesByUser.length);
+        response.body.forEach((category) => {
+          expect(category).hasOwnProperty('name');
+          expect(category).hasOwnProperty('short_name');
+          expect(category).hasOwnProperty('user');
+        });
+
+      });
 
   it('should be possible to update it by the user who owns that category',
       async () => {
+        const authUser = await AuthUserToken();
         const numberCategories = 2;
         await categoryFactory.createMany('Category', numberCategories);
 
-        const usersOnDb = await User.findAll();
-        expect(usersOnDb.length).toBe(2);
-
-        const categoriesOnDB = await Category.findAll();
+        const usersOnDb = await UserModel.findAll();
+        expect(usersOnDb.length).toBe(3);
+        const categoriesOnDB = await CategoryModel.findAll();
         expect(categoriesOnDB.length).toBe(2);
 
-        const userLine = await User.findByPk(1);
-        console.log({userLine});
-        console.log({name:userLine.firstName});
-
-        const token = await jwt.sign({
-          user: userLine,
-        }, process.env.SECRET_KEY);
-
-        console.log({token});
-
+        const firstCategory = await CategoryModel.findByPk(1);
+        await firstCategory.update({
+          userId: authUser.userDb.id,
+        });
 
         const response = await request(app).
             put('/categories/1').
-            set(`Authorization`, `Bearer ${token}`).
+            set('Authorization', `Bearer ${authUser.token}`).
             send({
               name: 'Updated Name',
             });
@@ -108,17 +108,36 @@ describe('CRUD Categories', () => {
 
       });
 
-  it.skip('should be delete an user', async () => {
-    const numberUsers = 2;
-    await userFactory.createMany('User', numberUsers);
-    const usersOnDb = await User.findAll();
-    expect(usersOnDb.length).toBe(2);
+  it('should be not possible to update an category if you do not are the owner',
+      async () => {
+        const authUser = await AuthUserToken();
+        const numberCategories = 2;
+        await categoryFactory.createMany('Category', numberCategories);
 
-    const response = await request(app).delete('/users/1');
+        const response = await request(app).
+            put('/categories/1').
+            set('Authorization', `Bearer ${authUser.token}`).
+            send({
+              name: 'Updated Name',
+            });
 
-    const usersAfterDelete = await User.findAll();
-    expect(usersAfterDelete.length).toBe(1);
+        expect(response.status).toBe(StatusCodes.UNAUTHORIZED);
 
-    expect(response.status).toBe(StatusCodes.NO_CONTENT);
-  });
+      });
+
+  it('you should be able to delete a category if it is the user own category.',
+      async () => {
+        const authUser = await AuthUserToken();
+        await categoryFactory.create('Category');
+
+        const firstCategory = await CategoryModel.findByPk(1);
+        await firstCategory.update({
+          userId: authUser.userDb.id,
+        });
+
+        const response = await request(app).delete('/categories/1').
+            set('Authorization', `Bearer ${authUser.token}`);
+
+        expect(response.status).toBe(StatusCodes.NO_CONTENT);
+      });
 });

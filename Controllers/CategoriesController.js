@@ -1,6 +1,7 @@
 const {verify} = require('jsonwebtoken');
 const {User: UserModel} = require('../Models');
-const Category = require('../Models').Category;
+const CategoryModel = require('../Models').Category;
+const CostModel = require('../Models').Cost;
 
 class CategoriesController {
   static async createCategory(req, res) {
@@ -18,7 +19,7 @@ class CategoriesController {
       const {name} = req.body;
       const short_name = name.substring(0, 4);
 
-      const newCategory = await Category.create({
+      const newCategory = await CategoryModel.create({
         name,
         short_name,
         userId: userDb.id,
@@ -35,7 +36,10 @@ class CategoriesController {
 
   static async index(req, res) {
     try {
-      const categories = await Category.findAll({
+      const categories = await CategoryModel.findAll({
+            where: {
+              userId: req.user.id,
+            },
             include: [UserModel],
           },
       );
@@ -48,23 +52,65 @@ class CategoriesController {
   }
 
   static async updateCategory(req, res) {
-    // const authUser = UserModel.getAuthUser(req.headers.authorization);
-    // console.log({authUser});
-    // process.exit();
-
-    console.log({user: req.user});
-    process.exit();
-
     try {
-      const categories = await Category.findAll({
-            include: [UserModel],
-          },
-      );
-      res.json(categories);
+      const id = req.params.id;
+      const categoryToUpdate = await CategoryModel.findByPk(id);
+      if (!categoryToUpdate) {
+        res.status(400).json({error: 'Category not found'});
+      }
+
+      if (categoryToUpdate.userId !== req.user.id) {
+        res.status(401).json({error: 'Cant update if you not are the owner'});
+      }
+
+      const name = req.body.name;
+
+      await categoryToUpdate.update({
+        name: name,
+        short_name: name.substring(4),
+      });
+
+      const response = await categoryToUpdate.reload();
+
+      res.status(200).json(response);
+
     } catch (e) {
       console.log({e});
 
-      res.status(500).json({error: 'Error getting categories'});
+      res.status(500).json({error: 'Error updating category'});
+    }
+  }
+
+  static async deleteCategory(req, res) {
+    try {
+      const id = req.params.id;
+      const categoryToDelete = await CategoryModel.findByPk(id);
+      if (!categoryToDelete) {
+        res.status(404).json({error: 'Category not found'});
+      }
+
+      if (categoryToDelete.userId !== req.user.id) {
+        res.status(401).json({error: 'Unauthorized'});
+      }
+
+      const costs = await CostModel.findAll({
+        where: {
+          categoryId: categoryToDelete.id,
+        },
+      });
+      if (!!costs.length) {
+        res.status(403).
+            json({error: 'Cannot delete category, it has associated costs'});
+
+      }
+      await categoryToDelete.destroy();
+
+      res.status(204).send()
+
+    } catch (e) {
+      console.log({e});
+      res.status(500).json({error: 'Error deleting category'});
+
     }
   }
 }
