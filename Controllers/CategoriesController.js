@@ -85,6 +85,7 @@ class CategoriesController {
     try {
       const id = req.params.id;
       const categoryToDelete = await CategoryModel.findByPk(id);
+
       if (!categoryToDelete) {
         res.status(404).json({error: 'Category not found'});
       }
@@ -98,14 +99,15 @@ class CategoriesController {
           categoryId: categoryToDelete.id,
         },
       });
+
       if (!!costs.length) {
         res.status(403).
             json({error: 'Cannot delete category, it has associated costs'});
-
       }
+
       await categoryToDelete.destroy();
 
-      res.status(204).send()
+      return res.status(204).send();
 
     } catch (e) {
       console.log({e});

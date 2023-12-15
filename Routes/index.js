@@ -13,6 +13,9 @@ router.use('/categories', categoriesRouter);
 const usersRoutes = require('./Users.routes');
 router.use('/users', usersRoutes);
 
+const costsRoutes = require('./Costs.routes');
+router.use('/costs', costsRoutes);
+
 const authRoutes = require('./Auth.routes');
 router.use('/auth', authRoutes);
 

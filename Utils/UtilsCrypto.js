@@ -8,7 +8,6 @@ class UtilsCrypto {
     } catch (e) {
       console.log('error hashing password');
       console.log({e});
-
     }
 
   }
