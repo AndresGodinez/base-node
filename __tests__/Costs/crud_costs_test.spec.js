@@ -5,8 +5,6 @@ const CategoryModel = require('../../Models').Category;
 const CostModel = require('../../Models').Cost;
 const userFactory = require('../../Factories/UserFactory');
 const categoryFactory = require('../../Factories/CategoryFactory');
-const jwt = require('jsonwebtoken');
-const {hashPassword} = require('../../Utils/UtilsCrypto');
 const {setup} = require('../UtilsTest/truncateTables');
 const {AuthUserToken} = require('../UtilsTest/AuthUtils');
 const costFactory = require('../../Factories/CostFactory');
@@ -111,10 +109,8 @@ describe('Crud costs test', () => {
         get(`/costs`).
         set('Authorization', `Bearer ${authUser.token}`);
 
-    console.log({response: response.body});
 
     expect(response.status).toBe(StatusCodes.OK);
-
     expect(response.body.length).toBe(2);
     expect(response.body).not.toEqual(
         expect.arrayContaining([cost3, cost4]),

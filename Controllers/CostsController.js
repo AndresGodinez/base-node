@@ -95,6 +95,27 @@ class CostController {
 
     }
   }
+
+  static async totalCosts(req, res) {
+    try {
+      const user = req.user;
+
+      const costs = await CostModel.findAll({
+        where: {
+          userId: user.id,
+        },
+      });
+
+      const total = costs.reduce((sum, cost) => sum + cost.amount, 0);
+
+      res.status(200).json({
+        total,
+      });
+
+    } catch (e) {
+      res.status(500).json(e.message);
+    }
+  }
 }
 
 module.exports = CostController;
