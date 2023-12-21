@@ -12,7 +12,7 @@ describe('Features costs', () => {
     await setup();
   });
 
-  it('should be bet total costs', async () => {
+  it('should be get total costs', async () => {
     const authUser = await AuthUserToken();
     const lengthCosts = 5;
 

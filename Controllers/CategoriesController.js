@@ -115,6 +115,41 @@ class CategoriesController {
 
     }
   }
+
+  static async totalCategories(req, res) {
+    try {
+      const user = req.user;
+
+      const costs = await CostModel.findAll({
+        where: {
+          userId: user.id,
+        },
+        include: [CategoryModel],
+      });
+
+      const groupedCosts = Object.values(costs.reduce((acc, cost) => {
+        const categoryId = cost.Category.id;
+        if (!acc[categoryId]) {
+          acc[categoryId] = {
+            name: cost.Category.name,
+            categoryId: categoryId,
+            costId: cost.id,
+            amount: 0,
+          };
+        }
+        acc[categoryId].amount += cost.amount;
+
+        return acc;
+      }, {}));
+
+      res.status(200).json(groupedCosts);
+    } catch (e) {
+      console.log({e});
+      res.status(500).json({error: e.message});
+
+    }
+
+  }
 }
 
 module.exports = CategoriesController;
